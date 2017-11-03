@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-################################################################################
+################################################################################ 
 
 class FresnelCoefficients:
 
@@ -10,19 +10,83 @@ class FresnelCoefficients:
 		self.n = n
 		self.ni = ni
 		self.phi = np.linspace(0,np.pi/2,200)
+		phii = [np.arcsin(np.sin(phi)*(self.n/self.ni)) for phi in self.phi ]
 
-		if 'complex' in [type(n), type(ni)]:
-			print 'gilipollas'
+		if complex == type(n):
+			self.imaginCoeff(phii, n.real, n.imag)
+			self.plotImgCoeff()
+		elif complex == type(ni):
+			self.imaginCoeff(phii, ni.real, ni.imag)
+			self.plotImgCoeff()
 		else:
-			if ni > n:
-				phii = [np.arcsin(np.sin(phi)*(self.n/self.ni)) for phi in self.phi ]
-				self.realCoeff_nipn(phii)
-			elif n > ni:
-				self.realCoeff_npni()
+			self.realCoeff(phii)
+			self.plotrealCoeff()
 
-		self.plotCoeff()
+	def imaginCoeff(self, phii, a, b):
 
-	def realCoeff_nipn(self, phii):
+		self.rModParl = []
+		self.rModOrt = []
+		self.rphsParl = []
+		self.rphsOrt = []
+
+		for i in range(len(phii)):
+			A = self.n*np.cos(phii[i]) - a*np.cos(self.phi[i])
+			G = self.n*np.cos(phii[i]) + a*np.cos(self.phi[i])
+			B = b*np.cos(self.phi[i])
+
+			ReParl = (A*G - B**2) / (G**2 - B**2)
+			ImgParl = -(B*G + A*B) / (G**2 - B**2)
+
+			self.rModParl.append(np.sqrt(ReParl**2 + ImgParl**2))
+			self.rphsParl.append(np.arctan(ImgParl/ReParl))
+
+			A = self.n*np.cos(self.phi[i]) - a*np.cos(phii[i])
+			G = self.n*np.cos(self.phi[i]) + a*np.cos(phii[i])
+			B = b*np.cos(phii[i])
+
+			ReOrt = (A*G - B**2) / (G**2 - B**2)
+			ImgOrt = -(B*G + A*B) / (G**2 - B**2)
+
+			self.rModOrt.append(np.sqrt(ReOrt**2 + ImgOrt**2))
+			self.rphsOrt.append(np.arctan(ImgOrt/ReOrt))
+
+	def plotImgCoeff(self):
+
+		print 'hola'
+
+		f, (ax1,ax2) = plt.subplots(1, 2)
+
+		ax1.axhline(0, color='black').set_dashes([1,1,1,1])
+		ax1.plot(self.phi, self.rModParl, label="$|r_{||}|$")
+		ax1.plot(self.phi, self.rModOrt, label="$|r_{\perp}|$")
+		
+		ax1.set_xticks([0,np.pi/2])
+		ax1.set_xlim([0,np.pi/2])
+		
+		ax1.set_yticks([min([min(self.rModParl), min(self.rModOrt)]),
+			            max([max(self.rModParl), max(self.rModOrt)])])
+		ax1.set_ylim([min([min(self.rModParl), min(self.rModOrt)]),
+			          max([max(self.rModParl), max(self.rModOrt)])])
+
+		ax1.legend()
+
+		ax2.axhline(0, color='black').set_dashes([1,1,1,1])
+		ax2.plot(self.phi, self.rphsParl, label="$|\phi_{||}|$")
+		ax2.plot(self.phi, self.rphsOrt, label="$|\phi_{\perp}|$")
+		
+		ax2.set_xticks([0,np.pi/2])
+		ax2.set_xlim([0,np.pi/2])
+		
+		ax2.set_yticks([min([min(self.rphsParl), min(self.rphsOrt)]),
+			            max([max(self.rphsParl), max(self.rphsOrt)])])
+		ax2.set_ylim([min([min(self.rphsParl), min(self.rphsOrt)]),
+			          max([max(self.rphsParl), max(self.rphsOrt)])])
+
+		ax2.legend()
+
+		plt.show()
+
+	def realCoeff(self, phii):
 
 		self.rParl = []
 		self.rOrt = []
@@ -35,43 +99,42 @@ class FresnelCoefficients:
 		self.TOrt = []
 
 		for i in range(len(phii)):
-			self.rOrt.append(-np.sin(self.phi[i]-phii[i]) / 
+			rOrt = -np.sin(self.phi[i]-phii[i]) / np.sin(self.phi[i]+phii[i]) 
+			
+			if not np.isnan(rOrt): 
+				self.rOrt.append(rOrt)
+			else:
+				self.rOrt.append(1)
+
+			rParl = -np.tan(self.phi[i]-phii[i]) / np.tan(self.phi[i]+phii[i])
+
+			if not np.isnan(rParl):
+				self.rParl.append(rParl)
+			else:
+				self.rParl.append(-1)
+
+			tOrt = ((2*np.sin(phii[i])*np.cos(self.phi[i])) / 
 				                                 np.sin(self.phi[i]+phii[i]))
 
-			self.rParl.append(-np.tan(self.phi[i]-phii[i]) /
-			                                     np.tan(self.phi[i]+phii[i]))
+			if not np.isnan(tOrt): 
+				self.tOrt.append(tOrt)
+			else:
+				self.tOrt.append(0)
 
-			self.tOrt.append((2*np.sin(phii[i])*np.cos(self.phi[i])) / 
-				                                 np.sin(self.phi[i]+phii[i]))
-
-			self.tParl.append((2*np.sin(phii[i])*np.cos(self.phi[i])) / 
+			tParl = ((2*np.sin(phii[i])*np.cos(self.phi[i])) / 
 				     np.sin(self.phi[i]+phii[i])*np.cos(self.phi[i]-phii[i]))
+
+			if not np.isnan(tParl):
+				self.tParl.append(tParl)
+			else:
+				self.tParl.append(0)
 
 			self.ROrt.append(self.rOrt[i]**2)
 			self.RParl.append(self.rParl[i]**2)
 			self.TParl.append(1-self.RParl[i])
 			self.TOrt.append(1-self.ROrt[i])
 
-	def realCoeff_npni(self):
-
-		phiL = np.arcsin(self.ni/self.n)
-		print phiL
-
-		phiR = np.linspace(0, phiL)
-		phiiR = [np.arcsin(np.sin(phi)*(self.n/self.ni)) for phi in phiR ]
-
-		self.realCoeff_nipn(phiiR)
-
-		while len(self.rParl) != len(self.phi):
-			self.rParl.append(-1)
-		while len(self.tParl) != len(self.phi):
-			self.tParl.append(0)
-		while len(self.rOrt) != len(self.phi):
-			self.rOrt.append(1)
-		while len(self.tOrt) != len(self.phi):
-			self.tOrt.append(0)
-
-	def plotCoeff(self):
+	def plotrealCoeff(self):
 
 		f, plots = plt.subplots(2, 2)
 
@@ -93,8 +156,10 @@ class FresnelCoefficients:
 		plots[0,1].set_xticks([0,np.pi/2])
 		plots[0,1].set_xlim([0,np.pi/2])
 		
-		plots[0,1].set_yticks([0,1])
-		plots[0,1].set_ylim([0,1])
+		plots[0,1].set_yticks([min([min(self.tParl), min(self.tOrt)]),
+			                   max([max(self.tParl), max(self.tOrt)])])
+		plots[0,1].set_ylim([min([min(self.tParl), min(self.tOrt)]),
+			                   max([max(self.tParl), max(self.tOrt)])])
 
 		plots[0,1].legend()
 
