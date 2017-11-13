@@ -35,11 +35,11 @@ class FresnelCoefficients:
 
 		for i in range(len(self.rParl)):
 
-			self.rPhsParl.append(phase(self.RParl[i]))
-			self.rPhsOrt.append(phase(self.ROrt[i]))
+			self.rPhsParl.append(phase(self.rParl[i]))
+			self.rPhsOrt.append(phase(self.rOrt[i]))
 
-			self.rModParl.append(abs(self.RParl[i]))
-			self.rModOrt.append(abs(self.ROrt[i]))
+			self.rModParl.append(abs(self.rParl[i]))
+			self.rModOrt.append(abs(self.rOrt[i]))
 
 
 	def realCoeff(self, phii):
@@ -153,7 +153,6 @@ class FresnelCoefficients:
 
 		f, (ax1,ax2) = plt.subplots(1, 2)
 
-		ax1.axhline(0, color='black').set_dashes([1,1,1,1])
 		ax1.plot(self.phi, self.rModParl, label="$|r_{||}|$")
 		ax1.plot(self.phi, self.rModOrt, label="$|r_{\perp}|$")
 		
@@ -167,9 +166,8 @@ class FresnelCoefficients:
 
 		ax1.legend()
 
-		ax2.axhline(0, color='black').set_dashes([1,1,1,1])
-		ax2.plot(self.phi, self.rPhsOrt, label="$\phi_{\perp}$")
 		ax2.plot(self.phi, self.rPhsParl, label="$\phi_{||}$")
+		ax2.plot(self.phi, self.rPhsOrt, label="$\phi_{\perp}$")
 		
 		ax2.set_xticks([0,np.pi/2])
 		ax2.set_xlim([0,np.pi/2])
